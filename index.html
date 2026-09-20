@@ -84,9 +84,40 @@
   #detail.show { display: block; }
   #detail h3 { margin: 0 0 8px; font-size: 13px; font-family: "IBM Plex Sans", sans-serif; font-weight: 700; color: var(--accent); }
 
-  @media (max-width: 480px) {
+  .mobile-sort { display: none; }
+
+  @media (max-width: 640px) {
     h1 { font-size: 18px; }
     .legend { gap: 8px 12px; }
+    body { padding-inline: 14px; }
+
+    .mobile-sort {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; color: var(--muted);
+    }
+    .mobile-sort select {
+      flex: 1; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text); font-size: 13px; font-family: "IBM Plex Sans", sans-serif;
+    }
+
+    .table-scroll { overflow-x: visible; }
+    .card { background: transparent; border: none; }
+    table { min-width: 0; }
+    thead { display: none; }
+    tbody { display: block; }
+    tr {
+      display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+    }
+    td {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      white-space: normal; border-bottom: 1px dashed var(--border); padding: 8px 0;
+    }
+    tr td:last-child { border-bottom: none; }
+    td::before { content: attr(data-label); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; font-family: "IBM Plex Sans", sans-serif; }
+    td.sym { order: -2; border-bottom: 2px solid var(--border); font-size: 18px; padding-bottom: 10px; }
+    td.sym::before { content: none; }
+    td.total { order: -1; font-size: 16px; }
+    td.quality { max-width: none; }
   }
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,12 +127,28 @@
   <h1>Valuation Check</h1>
   <span class="byline">미국주식 9종목 · RSI · 200일 이격도 · Forward P/E(NTM)</span>
 </header>
-<div class="meta">생성 시각(UTC) 2026-09-20T13:01+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
+<div class="meta">생성 시각(UTC) 2026-09-20T13:21+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
 
 <div class="legend">
   <span><span class="dot good"></span>항목별 · Total 상위 3위 강조</span>
   <span><span class="dot danger"></span>데이터 갱신 필요</span>
 </div>
+
+    <div class="mobile-sort">
+      <label for="mobileSortSelect">정렬</label>
+      <select id="mobileSortSelect">
+        <option value="">기본순 (심볼)</option>
+        <option value="total:-1">Total 높은순</option>
+        <option value="total:1">Total 낮은순</option>
+        <option value="rsi14:1">RSI 낮은순 (과매도)</option>
+        <option value="rsi14:-1">RSI 높은순</option>
+        <option value="deviation_pct:1">이격도 낮은순</option>
+        <option value="deviation_pct:-1">이격도 높은순</option>
+        <option value="pe_current:1">Fwd P/E 낮은순</option>
+        <option value="pe_current:-1">Fwd P/E 높은순</option>
+        <option value="close:-1">종가 높은순</option>
+      </select>
+    </div>
 
 <div class="card">
   <div class="table-scroll">
@@ -180,13 +227,13 @@ function renderRows(rows) {
     const warn = (r.data_quality || []).some(q => q.includes('Stale') || q.includes('없음'));
     return `
       <tr data-symbol="${escapeHtml(r.symbol)}"${warn ? ' class="warn"' : ''}>
-        <td class="sym">${escapeHtml(r.symbol)}</td>
-        <td class="num">${fmt(r.close)}</td>
-        <td class="score-cell num${r.rsi_top3 ? ' top3' : ''}" data-kind="rsi">${fmt(r.rsi14, 1)}<br><b>${fmt(r.rsi_score, 1)}</b></td>
-        <td class="score-cell num${r.dev_top3 ? ' top3' : ''}" data-kind="deviation">${fmt(r.deviation_pct, 2, '%')}<br><b>${fmt(r.deviation_score, 1)}</b></td>
-        <td class="score-cell num${r.pe_top3 ? ' top3' : ''}" data-kind="pe">${fmt(r.pe_current, 1, 'x')}<br><b>${r.pe_score === null || r.pe_score === undefined ? 'N/A' : r.pe_score}</b></td>
-        <td class="total num${r.total_top3 ? ' top3' : ''}">${fmt(r.total, 1)}</td>
-        <td class="quality">${escapeHtml(r.quality_str || '-') || '-'}</td>
+        <td class="sym" data-label="Symbol">${escapeHtml(r.symbol)}</td>
+        <td class="num" data-label="Close">${fmt(r.close)}</td>
+        <td class="score-cell num${r.rsi_top3 ? ' top3' : ''}" data-kind="rsi" data-label="RSI(14) / Score">${fmt(r.rsi14, 1)}<br><b>${fmt(r.rsi_score, 1)}</b></td>
+        <td class="score-cell num${r.dev_top3 ? ' top3' : ''}" data-kind="deviation" data-label="200D 이격도 / Score">${fmt(r.deviation_pct, 2, '%')}<br><b>${fmt(r.deviation_score, 1)}</b></td>
+        <td class="score-cell num${r.pe_top3 ? ' top3' : ''}" data-kind="pe" data-label="Fwd P/E / Score">${fmt(r.pe_current, 1, 'x')}<br><b>${r.pe_score === null || r.pe_score === undefined ? 'N/A' : r.pe_score}</b></td>
+        <td class="total num${r.total_top3 ? ' top3' : ''}" data-label="Total (/15)">${fmt(r.total, 1)}</td>
+        <td class="quality" data-label="Data Quality">${escapeHtml(r.quality_str || '-') || '-'}</td>
       </tr>`;
   }).join('');
 }
@@ -200,6 +247,10 @@ function applySort() {
     th.classList.toggle('sort-active', th.dataset.key === sortKey);
     th.querySelector('.arrow').textContent = th.dataset.key === sortKey ? (sortDir === 1 ? '\u25B2' : '\u25BC') : '';
   });
+  const mobileSelect = document.getElementById('mobileSortSelect');
+  if (mobileSelect) {
+    mobileSelect.value = sortKey ? (sortKey + ':' + sortDir) : '';
+  }
 
   let sorted = ROWS.slice();
   if (sortKey) {
@@ -232,6 +283,19 @@ document.querySelectorAll('th[data-key]').forEach(th => {
     applySort();
   });
 });
+
+// Phone-width layout hides the real <th> row (the table becomes a stack of
+// cards instead), so this dropdown is the only way to sort there -- it
+// drives the exact same sortKey/sortDir/applySort() the header clicks do.
+const mobileSortSelect = document.getElementById('mobileSortSelect');
+if (mobileSortSelect) {
+  mobileSortSelect.addEventListener('change', () => {
+    const [key, dir] = mobileSortSelect.value ? mobileSortSelect.value.split(':') : [null, null];
+    sortKey = key || null;
+    sortDir = dir ? Number(dir) : 1;
+    applySort();
+  });
+}
 
 tbody.addEventListener('click', (e) => {
   const cell = e.target.closest('.score-cell');
