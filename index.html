@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Valuation Check</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ValCheck">
+<meta name="theme-color" content="#1f5fbf">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #ffffff; --border: #e3e1da; --text: #1b1c1e;
+    --muted: #6b6f76; --accent: #1f5fbf; --accent-soft: rgba(31,95,191,0.10);
+    --danger: #b3261e; --danger-bg: rgba(179,38,30,0.08);
+    --good: #0e9f6e; --good-bg: rgba(14,159,110,0.12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1015; --panel: #171a21; --border: #2a2f3a; --text: #e7e9ee;
+      --muted: #97a0ad; --accent: #6fa1ff; --accent-soft: rgba(111,161,255,0.14);
+      --danger: #ef5350; --danger-bg: rgba(239,83,80,0.14);
+      --good: #39ffb0; --good-bg: rgba(57,255,176,0.18);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1015; --panel: #171a21; --border: #2a2f3a; --text: #e7e9ee;
+    --muted: #97a0ad; --accent: #6fa1ff; --accent-soft: rgba(111,161,255,0.14);
+    --danger: #ef5350; --danger-bg: rgba(239,83,80,0.14);
+    --good: #39ffb0; --good-bg: rgba(57,255,176,0.18);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text); margin: 0;
+    padding-inline: 20px; padding-block: 20px 32px;
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; margin-bottom: 6px; }
+  h1 { font-size: 21px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  .byline { color: var(--muted); font-size: 13px; }
+  .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 16px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 18px; font-size: 12px; color: var(--muted); }
+  .legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  .legend .dot.good { background: var(--good); }
+  .legend .dot.danger { background: var(--danger); }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; min-width: 640px; border-collapse: collapse; }
+  th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
+  th {
+    text-align: right; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.03em; cursor: pointer; user-select: none; background: var(--panel);
+    position: sticky; top: 0;
+  }
+  th:hover { color: var(--text); }
+  th.sort-active { color: var(--accent); }
+  th .arrow { display: inline-block; width: 10px; margin-left: 2px; }
+  td.sym, th.sym { text-align: left; font-weight: 700; font-family: "IBM Plex Sans", sans-serif; }
+  td.quality { text-align: left; color: var(--muted); font-size: 11.5px; max-width: 220px; white-space: normal; font-family: "IBM Plex Sans", sans-serif; }
+  tr.warn td.quality { color: var(--danger); }
+  td.total { font-weight: 700; font-size: 14px; border-radius: 6px; }
+  .score-cell.top3, td.total.top3 { background: var(--good-bg); }
+  .score-cell.top3 b, td.total.top3 { color: var(--good); }
+  .score-cell { cursor: pointer; }
+  .score-cell:hover { background: var(--accent-soft); }
+  .score-cell b { font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+
+  #detail {
+    margin-top: 16px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; font-size: 13px; display: none; white-space: pre-wrap;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  #detail.show { display: block; }
+  #detail h3 { margin: 0 0 8px; font-size: 13px; font-family: "IBM Plex Sans", sans-serif; font-weight: 700; color: var(--accent); }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 18px; }
+    .legend { gap: 8px 12px; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<header>
+  <h1>Valuation Check</h1>
+  <span class="byline">미국주식 9종목 · RSI · 200일 이격도 · Forward P/E(NTM)</span>
+</header>
+<div class="meta">생성 시각(UTC) 2026-09-20T13:01+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
+
+<div class="legend">
+  <span><span class="dot good"></span>항목별 · Total 상위 3위 강조</span>
+  <span><span class="dot danger"></span>데이터 갱신 필요</span>
+</div>
+
+<div class="card">
+  <div class="table-scroll">
+    <table>
+      <thead>
+      <tr>
+        <th class="sym" data-key="symbol" data-type="str">Symbol<span class="arrow"></span></th>
+        <th data-key="close" data-type="num">Close<span class="arrow"></span></th>
+        <th data-key="rsi14" data-type="num">RSI(14) / Score<span class="arrow"></span></th>
+        <th data-key="deviation_pct" data-type="num">200D 이격도 / Score<span class="arrow"></span></th>
+        <th data-key="pe_current" data-type="num">Fwd P/E / Score<span class="arrow"></span></th>
+        <th data-key="total" data-type="num">Total (/15)<span class="arrow"></span></th>
+        <th data-key="quality_str" data-type="str">Data Quality<span class="arrow"></span></th>
+      </tr>
+</thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+<div id="detail"></div>
+
+<script>
+const ROWS = [{"symbol": "AMZN", "data_date": "2026-09-18", "close": 253.71001, "rsi14": 48.042650096438884, "rsi_score": 3.0, "sma200": 240.300749935, "deviation_pct": 5.580199008378939, "deviation_score": 3.0, "pe_current": 27.3, "pe_low": 25.8, "pe_median": 42.4, "pe_high": 91.5, "pe_score": 4, "pe_mid_low_median": 34.1, "pe_mid_median_high": 66.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 10.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "GOOGL", "data_date": "2026-09-18", "close": 349.54001, "rsi14": 54.98683456763245, "rsi_score": 2.0, "sma200": 337.49589912000005, "deviation_pct": 3.568668807948261, "deviation_score": 3.0, "pe_current": 25.9, "pe_low": 16.2, "pe_median": 21.7, "pe_high": 32.1, "pe_score": 3, "pe_mid_low_median": 18.95, "pe_mid_median_high": 26.9, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 8.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "JPM", "data_date": "2026-09-18", "close": 349.67001, "rsi14": 44.42977759758321, "rsi_score": 3.0, "sma200": 320.53585019499997, "deviation_pct": 9.089204776088566, "deviation_score": 3.0, "pe_current": 14.4, "pe_low": 8.5, "pe_median": 12.8, "pe_high": 16.2, "pe_score": 3, "pe_mid_low_median": 10.65, "pe_mid_median_high": 14.5, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 9.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "META", "data_date": "2026-09-18", "close": 665.75, "rsi14": 65.84733523255395, "rsi_score": 1.5, "sma200": 624.15849747, "deviation_pct": 6.663612319401135, "deviation_score": 3.0, "pe_current": 20.6, "pe_low": 12.3, "pe_median": 21.7, "pe_high": 29.1, "pe_score": 3, "pe_mid_low_median": 17.0, "pe_mid_median_high": 25.4, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.5, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "MSFT", "data_date": "2026-09-18", "close": 493.78, "rsi14": 53.14129844177667, "rsi_score": 2.0, "sma200": 431.60314967, "deviation_pct": 14.406023305793724, "deviation_score": 2.0, "pe_current": 25.0, "pe_low": 19.1, "pe_median": 30.1, "pe_high": 37.0, "pe_score": 3, "pe_mid_low_median": 24.6, "pe_mid_median_high": 33.55, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "NVDA", "data_date": "2026-09-18", "close": 222.27, "rsi14": 54.201582524961836, "rsi_score": 2.0, "sma200": 198.3781499525, "deviation_pct": 12.043589504802178, "deviation_score": 2.0, "pe_current": 18.2, "pe_low": 17.5, "pe_median": 34.9, "pe_high": 71.0, "pe_score": 4, "pe_mid_low_median": 26.2, "pe_mid_median_high": 52.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 8.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "PLTR", "data_date": "2026-09-18", "close": 177.64, "rsi14": 57.03807261390021, "rsi_score": 2.0, "sma200": 151.7526745575, "deviation_pct": 17.058892383930345, "deviation_score": 1.0, "pe_current": 93.9, "pe_low": 33.6, "pe_median": 77.6, "pe_high": 270.3, "pe_score": 3, "pe_mid_low_median": 55.599999999999994, "pe_mid_median_high": 173.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 6.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "TSLA", "data_date": "2026-09-18", "close": 364.26999, "rsi14": 53.77291737209454, "rsi_score": 2.0, "sma200": 397.32564965, "deviation_pct": -8.31953831299801, "deviation_score": 3.0, "pe_current": 188.3, "pe_low": 20.3, "pe_median": 83.1, "pe_high": 243.1, "pe_score": 2, "pe_mid_low_median": 51.699999999999996, "pe_mid_median_high": 163.1, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "V", "data_date": "2026-09-18", "close": 368.29001, "rsi14": 47.152031865248084, "rsi_score": 3.0, "sma200": 335.941399865, "deviation_pct": 9.629241929693544, "deviation_score": 3.0, "pe_current": 25.5, "pe_low": 22.2, "pe_median": 26.4, "pe_high": 34.1, "pe_score": 3, "pe_mid_low_median": 24.299999999999997, "pe_mid_median_high": 30.25, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 9.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}];
+const tbody = document.getElementById('tbody');
+const detail = document.getElementById('detail');
+
+ROWS.forEach(r => { r.quality_str = (r.data_quality || []).join('; '); });
+
+function fmt(v, digits, suffix) {
+  if (v === null || v === undefined) return 'N/A';
+  return v.toFixed(digits !== undefined ? digits : 2) + (suffix || '');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+
+// Marks each row's 4 evaluative columns (RSI/Deviation/P/E scores, Total) as
+// top-3-favorable, so the UI can highlight the most attractive picks per
+// column independently of whatever the table is currently sorted by.
+// "Favorable" is ranked on the finest-grained comparable number available
+// for that column (raw RSI/deviation move the same direction as their
+// score; P/E uses its position within the stock's own 5Y band, since raw
+// P/E multiples aren't comparable across companies) -- this avoids the
+// heavy ties a coarse 1-5 score would produce while staying consistent
+// with the score's own favorable direction. Ties at the 3rd-best distinct
+// value are all included (dense ranking), so a column can highlight more
+// than 3 rows when stocks are genuinely tied.
+function computeTop3(values, ascendingIsBetter) {
+  const present = values.filter(v => v !== null && v !== undefined && !Number.isNaN(v));
+  if (present.length === 0) return () => false;
+  const distinct = Array.from(new Set(present)).sort((a, b) => ascendingIsBetter ? a - b : b - a);
+  const threshold = distinct[Math.min(2, distinct.length - 1)];
+  return v => v !== null && v !== undefined && (ascendingIsBetter ? v <= threshold : v >= threshold);
+}
+
+(function markTop3() {
+  const peRichness = r => (r.pe_current == null || r.pe_low == null || r.pe_high == null || r.pe_high === r.pe_low)
+    ? null : (r.pe_current - r.pe_low) / (r.pe_high - r.pe_low);
+
+  const isRsiTop3 = computeTop3(ROWS.map(r => r.rsi14), true);
+  const isDevTop3 = computeTop3(ROWS.map(r => r.deviation_pct), true);
+  const isPeTop3 = computeTop3(ROWS.map(peRichness), true);
+  const isTotalTop3 = computeTop3(ROWS.map(r => r.total), false);
+
+  ROWS.forEach(r => {
+    r.rsi_top3 = r.rsi14 != null && isRsiTop3(r.rsi14);
+    r.dev_top3 = r.deviation_pct != null && isDevTop3(r.deviation_pct);
+    r.pe_top3 = isPeTop3(peRichness(r));
+    r.total_top3 = r.total != null && isTotalTop3(r.total);
+  });
+})();
+
+function renderRows(rows) {
+  tbody.innerHTML = rows.map(r => {
+    const warn = (r.data_quality || []).some(q => q.includes('Stale') || q.includes('없음'));
+    return `
+      <tr data-symbol="${escapeHtml(r.symbol)}"${warn ? ' class="warn"' : ''}>
+        <td class="sym">${escapeHtml(r.symbol)}</td>
+        <td class="num">${fmt(r.close)}</td>
+        <td class="score-cell num${r.rsi_top3 ? ' top3' : ''}" data-kind="rsi">${fmt(r.rsi14, 1)}<br><b>${fmt(r.rsi_score, 1)}</b></td>
+        <td class="score-cell num${r.dev_top3 ? ' top3' : ''}" data-kind="deviation">${fmt(r.deviation_pct, 2, '%')}<br><b>${fmt(r.deviation_score, 1)}</b></td>
+        <td class="score-cell num${r.pe_top3 ? ' top3' : ''}" data-kind="pe">${fmt(r.pe_current, 1, 'x')}<br><b>${r.pe_score === null || r.pe_score === undefined ? 'N/A' : r.pe_score}</b></td>
+        <td class="total num${r.total_top3 ? ' top3' : ''}">${fmt(r.total, 1)}</td>
+        <td class="quality">${escapeHtml(r.quality_str || '-') || '-'}</td>
+      </tr>`;
+  }).join('');
+}
+
+let sortKey = null;
+let sortDir = 1; // 1 = ascending, -1 = descending
+
+function applySort() {
+  const ths = document.querySelectorAll('th[data-key]');
+  ths.forEach(th => {
+    th.classList.toggle('sort-active', th.dataset.key === sortKey);
+    th.querySelector('.arrow').textContent = th.dataset.key === sortKey ? (sortDir === 1 ? '\u25B2' : '\u25BC') : '';
+  });
+
+  let sorted = ROWS.slice();
+  if (sortKey) {
+    const type = document.querySelector(`th[data-key="${sortKey}"]`).dataset.type;
+    sorted.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      const aNull = av === null || av === undefined || av === '';
+      const bNull = bv === null || bv === undefined || bv === '';
+      if (aNull && bNull) return 0;
+      if (aNull) return 1;   // N/A always sinks to the bottom
+      if (bNull) return -1;
+      if (type === 'str') {
+        return sortDir * String(av).localeCompare(String(bv));
+      }
+      return sortDir * (av - bv);
+    });
+  }
+  renderRows(sorted);
+}
+
+document.querySelectorAll('th[data-key]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if (sortKey === key) {
+      sortDir = -sortDir;
+    } else {
+      sortKey = key;
+      sortDir = th.dataset.type === 'str' ? 1 : -1; // numbers default to highest-first
+    }
+    applySort();
+  });
+});
+
+tbody.addEventListener('click', (e) => {
+  const cell = e.target.closest('.score-cell');
+  if (!cell) return;
+  const tr = cell.closest('tr');
+  const symbol = tr.dataset.symbol;
+  const kind = cell.dataset.kind;
+  const row = ROWS.find(r => r.symbol === symbol);
+  let title = '';
+  let body = '';
+
+  if (kind === 'rsi') {
+    title = symbol + ' — RSI(14) 점수 근거';
+    body = 'RSI(14): ' + fmt(row.rsi14, 1) + '\n' +
+           '기준: <=20->5, 20~30->4.5, 30~40->4, 40~50->3, 50~60->2, 60~70->1.5, >70->1\n' +
+           'Score: ' + fmt(row.rsi_score, 1);
+  } else if (kind === 'deviation') {
+    title = symbol + ' — 200일 이격도 점수 근거';
+    body = 'Close: ' + fmt(row.close, 2) + ' / SMA200: ' + fmt(row.sma200, 2) + '\n' +
+           '이격도: ' + fmt(row.deviation_pct, 2, '%') + '\n' +
+           '기준: >=+15%->1, +10~+15%->2, -10~+10%->3, -15~-10%->4, <-15%->5\n' +
+           'Score: ' + fmt(row.deviation_score, 1);
+  } else if (kind === 'pe') {
+    title = symbol + ' — Forward P/E(NTM) 점수 근거';
+    body = 'Koyfin 기준월: ' + (row.pe_period || 'N/A') + ' (' + row.pe_status + ')\n' +
+           'Current: ' + fmt(row.pe_current, 1, 'x') + '  Low: ' + fmt(row.pe_low, 1, 'x') +
+           '  Median: ' + fmt(row.pe_median, 1, 'x') + '  High: ' + fmt(row.pe_high, 1, 'x') + '\n' +
+           'mid(Low,Median): ' + fmt(row.pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.pe_mid_median_high, 2, 'x') + '\n' +
+           '기준: <=LOW->5, ~mid(L,M)->4, ~mid(M,H)->3, ~HIGH->2, >HIGH->1\n' +
+           'Score: ' + (row.pe_score === null || row.pe_score === undefined ? 'N/A' : row.pe_score);
+  }
+
+  detail.innerHTML = '<h3>' + title + '</h3>' + body;
+  detail.classList.add('show');
+});
+
+applySort();
+</script>
+
+
+</body>
+</html>
