@@ -90,7 +90,27 @@
     font-family: "IBM Plex Mono", ui-monospace, monospace;
   }
   #detail.show { display: block; }
-  #detail h3 { margin: 0 0 8px; font-size: 13px; font-family: "IBM Plex Sans", sans-serif; font-weight: 700; color: var(--accent); }
+  #detail h3, tr.detail-row h3 { margin: 0 0 8px; font-size: 13px; font-family: "IBM Plex Sans", sans-serif; font-weight: 700; color: var(--accent); }
+
+  .pe-band { margin-top: 10px; }
+  .pe-band-track { position: relative; height: 6px; border-radius: 3px; background: var(--border); margin: 20px 6px 8px; }
+  .pe-band-median {
+    position: absolute; top: -3px; width: 2px; height: 12px; background: var(--muted); transform: translateX(-50%);
+  }
+  .pe-band-current {
+    position: absolute; top: -7px; width: 2px; height: 20px; background: var(--accent); transform: translateX(-50%); border-radius: 1px;
+  }
+  .pe-band-current::after {
+    content: attr(data-value); position: absolute; top: -19px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; font-weight: 700; white-space: nowrap; color: var(--accent); font-family: "IBM Plex Sans", sans-serif;
+  }
+  .pe-band-current.good { background: var(--good); }
+  .pe-band-current.good::after { color: var(--good); }
+  .pe-band-current.danger { background: var(--danger); }
+  .pe-band-current.danger::after { color: var(--danger); }
+  .pe-band-labels {
+    display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: "IBM Plex Sans", sans-serif;
+  }
 
   .mobile-sort { display: none; }
 
@@ -128,6 +148,13 @@
     td.val-total { order: -2; font-size: 16px; }
     td.grand-total { order: -1; font-size: 18px; }
     td.quality { max-width: none; }
+
+    tr.detail-row { border-color: var(--accent); margin-top: -4px; }
+    tr.detail-row td.detail-cell {
+      display: block; white-space: pre-wrap; border-bottom: none; padding: 2px;
+      font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 13px;
+    }
+    tr.detail-row td.detail-cell::before { content: none; }
   }
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,7 +164,7 @@
   <h1>Valuation Check</h1>
   <span class="byline">미국주식 9종목 · 기술점수(RSI·이격도·MACD) · 밸류에이션점수(Forward/Trailing P/E·PEG)</span>
 </header>
-<div class="meta">생성 시각(UTC) 2026-09-21T17:30+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
+<div class="meta">생성 시각(UTC) 2026-09-21T19:46+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
 
 <div class="legend">
   <span><span class="dot good"></span>항목별 · 점수별 상위 3위 강조</span>
@@ -193,7 +220,7 @@
 <div id="detail"></div>
 
 <script>
-const ROWS = [{"symbol": "AMZN", "data_date": "2026-09-21", "close": 257.59, "rsi14": 51.90972238077934, "rsi_score": 2.0, "sma200": 240.41659993500002, "deviation_200_pct": 7.143183985483126, "deviation_200_score": 3.0, "sma50": 256.0848, "deviation_50_pct": 0.5877740498459794, "deviation_50_score": 3.0, "macd": -1.6094874019251506, "macd_signal": -1.3097140120207056, "macd_histogram": -0.299773389904445, "macd_score": 2.0, "technical_score": 10.0, "forward_pe_current": 27.6, "forward_pe_low": 25.8, "forward_pe_median": 42.4, "forward_pe_high": 91.5, "forward_pe_score": 4, "forward_pe_mid_low_median": 34.1, "forward_pe_mid_median_high": 66.95, "trailing_pe_current": 20.4, "trailing_pe_low": 18.9, "trailing_pe_median": 50.8, "trailing_pe_high": 321.8, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 34.849999999999994, "trailing_pe_mid_median_high": 186.3, "peg": 1.33, "peg_score": 3, "valuation_score": 11, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "GOOGL", "data_date": "2026-09-21", "close": 356.075, "rsi14": 59.49405840359484, "rsi_score": 2.0, "sma200": 337.69722412000004, "deviation_200_pct": 5.442086747348984, "deviation_200_score": 3.0, "sma50": 345.55509846, "deviation_50_pct": 3.0443485241233414, "deviation_50_score": 3.0, "macd": 0.7252033992871816, "macd_signal": -1.347261578996968, "macd_histogram": 2.0724649782841498, "macd_score": 4.0, "technical_score": 12.0, "forward_pe_current": 25.9, "forward_pe_low": 16.2, "forward_pe_median": 21.7, "forward_pe_high": 32.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 18.95, "forward_pe_mid_median_high": 26.9, "trailing_pe_current": 17.4, "trailing_pe_low": 16.0, "trailing_pe_median": 24.9, "trailing_pe_high": 34.0, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 20.45, "trailing_pe_mid_median_high": 29.45, "peg": 2.03, "peg_score": 1, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "JPM", "data_date": "2026-09-21", "close": 352.23, "rsi14": 48.35542823866925, "rsi_score": 3.0, "sma200": 320.757600195, "deviation_200_pct": 9.811895271029215, "deviation_200_score": 3.0, "sma50": 353.51419992, "deviation_50_pct": -0.3632668561236341, "deviation_50_score": 3.0, "macd": -0.84405241247822, "macd_signal": 0.08016619376278628, "macd_histogram": -0.9242186062410063, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 14.4, "forward_pe_low": 8.5, "forward_pe_median": 12.8, "forward_pe_high": 16.2, "forward_pe_score": 3, "forward_pe_mid_low_median": 10.65, "forward_pe_mid_median_high": 14.5, "trailing_pe_current": 15.0, "trailing_pe_low": 8.1, "trailing_pe_median": 11.6, "trailing_pe_high": 16.6, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 9.85, "trailing_pe_mid_median_high": 14.100000000000001, "peg": 1.42, "peg_score": 3, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "META", "data_date": "2026-09-21", "close": 737.68, "rsi14": 77.43847687348969, "rsi_score": 1.0, "sma200": 624.61139759, "deviation_200_pct": 18.102231698983353, "deviation_200_score": 1.0, "sma50": 608.74839642, "deviation_50_pct": 21.179785333026956, "deviation_50_score": 1.0, "macd": 29.535803748903277, "macd_signal": 18.89332925139782, "macd_histogram": 10.642474497505457, "macd_score": 4.0, "technical_score": 7.0, "forward_pe_current": 20.6, "forward_pe_low": 12.3, "forward_pe_median": 21.7, "forward_pe_high": 29.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 17.0, "forward_pe_mid_median_high": 25.4, "trailing_pe_current": 25.1, "trailing_pe_low": 8.5, "trailing_pe_median": 26.5, "trailing_pe_high": 39.2, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 17.5, "trailing_pe_mid_median_high": 32.85, "peg": 1.02, "peg_score": 3, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "MSFT", "data_date": "2026-09-21", "close": 497.16, "rsi14": 54.95631328678568, "rsi_score": 2.0, "sma200": 431.63894967, "deviation_200_pct": 15.17959636869952, "deviation_200_score": 1.0, "sma50": 466.9218001, "deviation_50_pct": 6.4760737008903835, "deviation_50_score": 3.0, "macd": 6.42567381962175, "macd_signal": 9.296552792350651, "macd_histogram": -2.8708789727289012, "macd_score": 2.0, "technical_score": 8.0, "forward_pe_current": 25.0, "forward_pe_low": 19.1, "forward_pe_median": 30.1, "forward_pe_high": 37.0, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.6, "forward_pe_mid_median_high": 33.55, "trailing_pe_current": 27.5, "trailing_pe_low": 21.0, "trailing_pe_median": 33.9, "trailing_pe_high": 40.5, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 27.45, "trailing_pe_mid_median_high": 37.2, "peg": 1.55, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "NVDA", "data_date": "2026-09-21", "close": 227.19, "rsi14": 58.0988281248221, "rsi_score": 2.0, "sma200": 198.6067999025, "deviation_200_pct": 14.391853708700841, "deviation_200_score": 2.0, "sma50": 214.59719926999998, "deviation_50_pct": 5.868110475270516, "deviation_50_score": 3.0, "macd": 1.405823793794326, "macd_signal": 1.4953247604100375, "macd_histogram": -0.08950096661571139, "macd_score": 2.0, "technical_score": 9.0, "forward_pe_current": 18.2, "forward_pe_low": 17.5, "forward_pe_median": 34.9, "forward_pe_high": 71.0, "forward_pe_score": 4, "forward_pe_mid_low_median": 26.2, "forward_pe_mid_median_high": 52.95, "trailing_pe_current": 28.1, "trailing_pe_low": 26.5, "trailing_pe_median": 58.2, "trailing_pe_high": 250.5, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 42.35, "trailing_pe_mid_median_high": 154.35, "peg": 0.35, "peg_score": 5, "valuation_score": 13, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "PLTR", "data_date": "2026-09-21", "close": 181.33, "rsi14": 59.897413426630564, "rsi_score": 2.0, "sma200": 151.8058745575, "deviation_200_pct": 19.448605351117077, "deviation_200_score": 1.0, "sma50": 159.34999912, "deviation_50_pct": 13.793536869396373, "deviation_50_score": 2.0, "macd": 3.7002008924419556, "macd_signal": 4.394988816151391, "macd_histogram": -0.694787923709435, "macd_score": 2.0, "technical_score": 7.0, "forward_pe_current": 93.9, "forward_pe_low": 33.6, "forward_pe_median": 77.6, "forward_pe_high": 270.3, "forward_pe_score": 3, "forward_pe_mid_low_median": 55.599999999999994, "forward_pe_mid_median_high": 173.95, "trailing_pe_current": 151.9, "trailing_pe_low": 107.5, "trailing_pe_median": 243.8, "trailing_pe_high": 494.7, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 175.65, "trailing_pe_mid_median_high": 369.25, "peg": 1.76, "peg_score": 2, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "TSLA", "data_date": "2026-09-21", "close": 373.22, "rsi14": 57.780389133383316, "rsi_score": 2.0, "sma200": 397.0455497, "deviation_200_pct": -6.000709419360595, "deviation_200_score": 3.0, "sma50": 349.55479908, "deviation_50_pct": 6.770097559033639, "deviation_50_score": 3.0, "macd": 4.497068184030752, "macd_signal": 3.8080492193088653, "macd_histogram": 0.6890189647218867, "macd_score": 5.0, "technical_score": 13.0, "forward_pe_current": 188.3, "forward_pe_low": 20.3, "forward_pe_median": 83.1, "forward_pe_high": 243.1, "forward_pe_score": 2, "forward_pe_mid_low_median": 51.699999999999996, "forward_pe_mid_median_high": 163.1, "trailing_pe_current": 337.4, "trailing_pe_low": 33.0, "trailing_pe_median": 106.2, "trailing_pe_high": 459.0, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 69.6, "trailing_pe_mid_median_high": 282.6, "peg": 6.96, "peg_score": 1, "valuation_score": 5, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "V", "data_date": "2026-09-21", "close": 368.31, "rsi14": 47.178851768823066, "rsi_score": 3.0, "sma200": 336.134849865, "deviation_200_pct": 9.572095885898868, "deviation_200_score": 3.0, "sma50": 367.46720289999996, "deviation_50_pct": 0.22935301255426754, "deviation_50_score": 3.0, "macd": 0.691805402783018, "macd_signal": 2.0077739310624008, "macd_histogram": -1.3159685282793827, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 25.5, "forward_pe_low": 22.2, "forward_pe_median": 26.4, "forward_pe_high": 34.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.299999999999997, "forward_pe_mid_median_high": 30.25, "trailing_pe_current": 31.4, "trailing_pe_low": 26.2, "trailing_pe_median": 31.6, "trailing_pe_high": 47.3, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 28.9, "trailing_pe_mid_median_high": 39.45, "peg": 1.76, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}];
+const ROWS = [{"symbol": "AMZN", "data_date": "2026-09-21", "close": 258.81, "rsi14": 53.009425012697186, "rsi_score": 2.0, "sma200": 240.42269993499997, "deviation_200_pct": 7.647905156198309, "deviation_200_score": 3.0, "sma50": 256.1092, "deviation_50_pct": 1.0545501684437797, "deviation_50_score": 3.0, "macd": -1.512165464603214, "macd_signal": -1.2902496245563182, "macd_histogram": -0.2219158400468959, "macd_score": 2.0, "technical_score": 10.0, "forward_pe_current": 27.6, "forward_pe_low": 25.8, "forward_pe_median": 42.4, "forward_pe_high": 91.5, "forward_pe_score": 4, "forward_pe_mid_low_median": 34.1, "forward_pe_mid_median_high": 66.95, "trailing_pe_current": 20.4, "trailing_pe_low": 18.9, "trailing_pe_median": 50.8, "trailing_pe_high": 321.8, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 34.849999999999994, "trailing_pe_mid_median_high": 186.3, "peg": 1.33, "peg_score": 3, "valuation_score": 11, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "GOOGL", "data_date": "2026-09-21", "close": 356.03, "rsi14": 59.466110100625606, "rsi_score": 2.0, "sma200": 337.69699912, "deviation_200_pct": 5.428831445874183, "deviation_200_score": 3.0, "sma50": 345.55419845999995, "deviation_50_pct": 3.031594345166866, "deviation_50_score": 3.0, "macd": 0.7216136556974106, "macd_signal": -1.3479795277149222, "macd_histogram": 2.0695931834123327, "macd_score": 4.0, "technical_score": 12.0, "forward_pe_current": 25.9, "forward_pe_low": 16.2, "forward_pe_median": 21.7, "forward_pe_high": 32.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 18.95, "forward_pe_mid_median_high": 26.9, "trailing_pe_current": 17.4, "trailing_pe_low": 16.0, "trailing_pe_median": 24.9, "trailing_pe_high": 34.0, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 20.45, "trailing_pe_mid_median_high": 29.45, "peg": 2.03, "peg_score": 1, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "JPM", "data_date": "2026-09-21", "close": 351.54, "rsi14": 47.35299841246465, "rsi_score": 3.0, "sma200": 320.754150195, "deviation_200_pct": 9.597958369762004, "deviation_200_score": 3.0, "sma50": 353.50039992, "deviation_50_pct": -0.5545679496950062, "deviation_50_score": 3.0, "macd": -0.8990951475209954, "macd_signal": 0.0691576467542312, "macd_histogram": -0.9682527942752266, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 14.4, "forward_pe_low": 8.5, "forward_pe_median": 12.8, "forward_pe_high": 16.2, "forward_pe_score": 3, "forward_pe_mid_low_median": 10.65, "forward_pe_mid_median_high": 14.5, "trailing_pe_current": 15.0, "trailing_pe_low": 8.1, "trailing_pe_median": 11.6, "trailing_pe_high": 16.6, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 9.85, "trailing_pe_mid_median_high": 14.100000000000001, "peg": 1.42, "peg_score": 3, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "META", "data_date": "2026-09-21", "close": 748.18, "rsi14": 78.50347563414712, "rsi_score": 1.0, "sma200": 624.66389759, "deviation_200_pct": 19.773209703095418, "deviation_200_score": 1.0, "sma50": 608.95839642, "deviation_50_pct": 22.86225206819852, "deviation_50_score": 1.0, "macd": 30.373410586510204, "macd_signal": 19.060850618919204, "macd_histogram": 11.312559967591, "macd_score": 4.0, "technical_score": 7.0, "forward_pe_current": 20.6, "forward_pe_low": 12.3, "forward_pe_median": 21.7, "forward_pe_high": 29.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 17.0, "forward_pe_mid_median_high": 25.4, "trailing_pe_current": 25.1, "trailing_pe_low": 8.5, "trailing_pe_median": 26.5, "trailing_pe_high": 39.2, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 17.5, "trailing_pe_mid_median_high": 32.85, "peg": 1.02, "peg_score": 3, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "MSFT", "data_date": "2026-09-21", "close": 499.97, "rsi14": 56.36154799617657, "rsi_score": 2.0, "sma200": 431.65299967, "deviation_200_pct": 15.82683321608529, "deviation_200_score": 1.0, "sma50": 466.9780001, "deviation_50_pct": 7.065000897887064, "deviation_50_score": 3.0, "macd": 6.649833363781283, "macd_signal": 9.341384701182557, "macd_histogram": -2.6915513374012736, "macd_score": 2.0, "technical_score": 8.0, "forward_pe_current": 25.0, "forward_pe_low": 19.1, "forward_pe_median": 30.1, "forward_pe_high": 37.0, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.6, "forward_pe_mid_median_high": 33.55, "trailing_pe_current": 27.5, "trailing_pe_low": 21.0, "trailing_pe_median": 33.9, "trailing_pe_high": 40.5, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 27.45, "trailing_pe_mid_median_high": 37.2, "peg": 1.55, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "NVDA", "data_date": "2026-09-21", "close": 227.4, "rsi14": 58.25046788691429, "rsi_score": 2.0, "sma200": 198.6078499025, "deviation_200_pct": 14.496984943764591, "deviation_200_score": 2.0, "sma50": 214.60139927, "deviation_50_pct": 5.963894351824561, "deviation_50_score": 3.0, "macd": 1.4225759305464578, "macd_signal": 1.4986751877604638, "macd_histogram": -0.07609925721400601, "macd_score": 2.0, "technical_score": 9.0, "forward_pe_current": 18.2, "forward_pe_low": 17.5, "forward_pe_median": 34.9, "forward_pe_high": 71.0, "forward_pe_score": 4, "forward_pe_mid_low_median": 26.2, "forward_pe_mid_median_high": 52.95, "trailing_pe_current": 28.1, "trailing_pe_low": 26.5, "trailing_pe_median": 58.2, "trailing_pe_high": 250.5, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 42.35, "trailing_pe_mid_median_high": 154.35, "peg": 0.35, "peg_score": 5, "valuation_score": 13, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "PLTR", "data_date": "2026-09-21", "close": 182.6, "rsi14": 60.79545401047139, "rsi_score": 1.5, "sma200": 151.8122245575, "deviation_200_pct": 20.280168828458798, "deviation_200_score": 1.0, "sma50": 159.37539912, "deviation_50_pct": 14.572262098313725, "deviation_50_score": 2.0, "macd": 3.801511433752495, "macd_signal": 4.415250924413498, "macd_histogram": -0.6137394906610032, "macd_score": 2.0, "technical_score": 6.5, "forward_pe_current": 93.9, "forward_pe_low": 33.6, "forward_pe_median": 77.6, "forward_pe_high": 270.3, "forward_pe_score": 3, "forward_pe_mid_low_median": 55.599999999999994, "forward_pe_mid_median_high": 173.95, "trailing_pe_current": 151.9, "trailing_pe_low": 107.5, "trailing_pe_median": 243.8, "trailing_pe_high": 494.7, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 175.65, "trailing_pe_mid_median_high": 369.25, "peg": 1.76, "peg_score": 2, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "TSLA", "data_date": "2026-09-21", "close": 374.625, "rsi14": 58.34724225088284, "rsi_score": 2.0, "sma200": 397.0525747, "deviation_200_pct": -5.6485151159000875, "deviation_200_score": 3.0, "sma50": 349.58289908, "deviation_50_pct": 7.163422749197257, "deviation_50_score": 3.0, "macd": 4.609147956110519, "macd_signal": 3.8304651737248188, "macd_histogram": 0.7786827823857001, "macd_score": 5.0, "technical_score": 13.0, "forward_pe_current": 188.3, "forward_pe_low": 20.3, "forward_pe_median": 83.1, "forward_pe_high": 243.1, "forward_pe_score": 2, "forward_pe_mid_low_median": 51.699999999999996, "forward_pe_mid_median_high": 163.1, "trailing_pe_current": 337.4, "trailing_pe_low": 33.0, "trailing_pe_median": 106.2, "trailing_pe_high": 459.0, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 69.6, "trailing_pe_mid_median_high": 282.6, "peg": 6.96, "peg_score": 1, "valuation_score": 5, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "V", "data_date": "2026-09-21", "close": 369.86, "rsi14": 49.17867116255652, "rsi_score": 3.0, "sma200": 336.142599865, "deviation_200_pct": 10.030683450577648, "deviation_200_score": 2.0, "sma50": 367.4982029, "deviation_50_pct": 0.6426690202462559, "deviation_50_score": 3.0, "macd": 0.8154521264297614, "macd_signal": 2.0325032757917496, "macd_histogram": -1.2170511493619882, "macd_score": 2.0, "technical_score": 10.0, "forward_pe_current": 25.5, "forward_pe_low": 22.2, "forward_pe_median": 26.4, "forward_pe_high": 34.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.299999999999997, "forward_pe_mid_median_high": 30.25, "trailing_pe_current": 31.4, "trailing_pe_low": 26.2, "trailing_pe_median": 31.6, "trailing_pe_high": 47.3, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 28.9, "trailing_pe_mid_median_high": 39.45, "peg": 1.76, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}];
 const tbody = document.getElementById('tbody');
 const detail = document.getElementById('detail');
 
@@ -234,6 +261,22 @@ function computeTop3(values, ascendingIsBetter) {
 
 function peRichness(current, low, high) {
   return (current == null || low == null || high == null || high === low) ? null : (current - low) / (high - low);
+}
+
+// Renders a simple Low--Median--High position bar so a raw P/E multiple
+// (not comparable across companies) reads as "where in its own 5Y range
+// does this sit" at a glance instead of requiring mental math against the
+// mid(Low,Median)/mid(Median,High) breakpoints.
+function peBandHtml(current, low, median, high, score) {
+  if (current == null || low == null || high == null || high === low) return '';
+  const pct = v => Math.max(0, Math.min(100, ((v - low) / (high - low)) * 100));
+  const medianPct = median != null ? pct(median) : null;
+  const currentPct = pct(current);
+  const cls = score == null ? '' : (score >= 4 ? ' good' : (score <= 2 ? ' danger' : ''));
+  return '<div class="pe-band"><div class="pe-band-track">' +
+    (medianPct != null ? '<div class="pe-band-median" style="left:' + medianPct.toFixed(1) + '%"></div>' : '') +
+    '<div class="pe-band-current' + cls + '" style="left:' + currentPct.toFixed(1) + '%" data-value="' + fmt(current, 1, 'x') + '"></div>' +
+    '</div><div class="pe-band-labels"><span>Low ' + fmt(low, 1, 'x') + '</span><span>Median ' + fmt(median, 1, 'x') + '</span><span>High ' + fmt(high, 1, 'x') + '</span></div></div>';
 }
 
 (function markTop3() {
@@ -382,17 +425,17 @@ tbody.addEventListener('click', (e) => {
     body = 'Koyfin 기준월: ' + (row.pe_period || 'N/A') + ' (' + row.pe_status + ')\n' +
            'Current: ' + fmt(row.forward_pe_current, 1, 'x') + '  Low: ' + fmt(row.forward_pe_low, 1, 'x') +
            '  Median: ' + fmt(row.forward_pe_median, 1, 'x') + '  High: ' + fmt(row.forward_pe_high, 1, 'x') + '\n' +
-           'mid(Low,Median): ' + fmt(row.forward_pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.forward_pe_mid_median_high, 2, 'x') + '\n' +
            '기준: <=LOW->5, ~mid(L,M)->4, ~mid(M,H)->3, ~HIGH->2, >HIGH->1\n' +
-           'Score: ' + (row.forward_pe_score === null || row.forward_pe_score === undefined ? 'N/A' : row.forward_pe_score);
+           'Score: ' + (row.forward_pe_score === null || row.forward_pe_score === undefined ? 'N/A' : row.forward_pe_score) +
+           peBandHtml(row.forward_pe_current, row.forward_pe_low, row.forward_pe_median, row.forward_pe_high, row.forward_pe_score);
   } else if (kind === 'tpe') {
     title = symbol + ' — Trailing P/E(LTM) 점수 근거';
     body = 'Koyfin 기준월: ' + (row.pe_period || 'N/A') + ' (' + row.pe_status + ')\n' +
            'Current: ' + fmt(row.trailing_pe_current, 1, 'x') + '  Low: ' + fmt(row.trailing_pe_low, 1, 'x') +
            '  Median: ' + fmt(row.trailing_pe_median, 1, 'x') + '  High: ' + fmt(row.trailing_pe_high, 1, 'x') + '\n' +
-           'mid(Low,Median): ' + fmt(row.trailing_pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.trailing_pe_mid_median_high, 2, 'x') + '\n' +
            '기준: <=LOW->5, ~mid(L,M)->4, ~mid(M,H)->3, ~HIGH->2, >HIGH->1\n' +
-           'Score: ' + (row.trailing_pe_score === null || row.trailing_pe_score === undefined ? 'N/A' : row.trailing_pe_score);
+           'Score: ' + (row.trailing_pe_score === null || row.trailing_pe_score === undefined ? 'N/A' : row.trailing_pe_score) +
+           peBandHtml(row.trailing_pe_current, row.trailing_pe_low, row.trailing_pe_median, row.trailing_pe_high, row.trailing_pe_score);
   } else if (kind === 'peg') {
     title = symbol + ' — PEG(NTM) 점수 근거';
     body = 'PEG: ' + fmt(row.peg, 2) + ' (Koyfin 기준월 ' + (row.pe_period || 'N/A') + ')\n' +
@@ -410,8 +453,30 @@ tbody.addEventListener('click', (e) => {
            'Total: ' + fmt(row.grand_total, 1) + ' / 35';
   }
 
-  detail.innerHTML = '<h3>' + title + '</h3>' + body;
-  detail.classList.add('show');
+  const html = '<h3>' + title + '</h3>' + body;
+  const wasOpenForThis = tr.dataset.detailOpenFor === kind;
+  document.querySelectorAll('tr.detail-row').forEach(el => el.remove());
+  document.querySelectorAll('tr[data-detail-open-for]').forEach(el => { delete el.dataset.detailOpenFor; });
+
+  if (window.matchMedia('(max-width: 640px)').matches) {
+    // Insert the breakdown directly under the tapped row instead of the
+    // shared bottom panel, so it doesn't force a long scroll back down
+    // through the rest of the stacked cards on a phone. Tapping the same
+    // score again closes it.
+    if (wasOpenForThis) return;
+    tr.dataset.detailOpenFor = kind;
+    const detailRow = document.createElement('tr');
+    detailRow.className = 'detail-row';
+    const td = document.createElement('td');
+    td.className = 'detail-cell';
+    td.innerHTML = html;
+    detailRow.appendChild(td);
+    tr.insertAdjacentElement('afterend', detailRow);
+    detailRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    detail.innerHTML = html;
+    detail.classList.add('show');
+  }
 });
 
 applySort();
