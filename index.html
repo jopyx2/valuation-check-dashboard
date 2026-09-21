@@ -55,7 +55,7 @@
 
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .table-scroll { overflow-x: auto; }
-  table { width: 100%; min-width: 640px; border-collapse: collapse; }
+  table { width: 100%; min-width: 1080px; border-collapse: collapse; }
   th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); font-size: 13px; white-space: nowrap; }
   th {
     text-align: right; color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase;
@@ -114,9 +114,10 @@
     }
     tr td:last-child { border-bottom: none; }
     td::before { content: attr(data-label); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; font-family: "IBM Plex Sans", sans-serif; }
-    td.sym { order: -2; border-bottom: 2px solid var(--border); font-size: 18px; padding-bottom: 10px; }
+    td.sym { order: -3; border-bottom: 2px solid var(--border); font-size: 18px; padding-bottom: 10px; }
     td.sym::before { content: none; }
-    td.total { order: -1; font-size: 16px; }
+    td.tech-total { order: -2; font-size: 16px; }
+    td.val-total { order: -1; font-size: 16px; }
     td.quality { max-width: none; }
   }
 </style>
@@ -125,12 +126,12 @@
 
 <header>
   <h1>Valuation Check</h1>
-  <span class="byline">미국주식 9종목 · RSI · 200일 이격도 · Forward P/E(NTM)</span>
+  <span class="byline">미국주식 9종목 · 기술점수(RSI·이격도·MACD) · 밸류에이션점수(Forward/Trailing P/E·PEG)</span>
 </header>
-<div class="meta">생성 시각(UTC) 2026-09-20T22:34+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
+<div class="meta">생성 시각(UTC) 2026-09-21T11:31+00:00 · Koyfin 기준월 2026-09 · 열 제목 클릭 = 정렬 · 점수 클릭 = 산출 근거</div>
 
 <div class="legend">
-  <span><span class="dot good"></span>항목별 · Total 상위 3위 강조</span>
+  <span><span class="dot good"></span>항목별 · 점수별 상위 3위 강조</span>
   <span><span class="dot danger"></span>데이터 갱신 필요</span>
 </div>
 
@@ -138,14 +139,18 @@
       <label for="mobileSortSelect">정렬</label>
       <select id="mobileSortSelect">
         <option value="">기본순 (심볼)</option>
-        <option value="total:-1">Total 높은순</option>
-        <option value="total:1">Total 낮은순</option>
+        <option value="technical_score:-1">기술점수 높은순</option>
+        <option value="technical_score:1">기술점수 낮은순</option>
+        <option value="valuation_score:-1">밸류에이션점수 높은순</option>
+        <option value="valuation_score:1">밸류에이션점수 낮은순</option>
         <option value="rsi14:1">RSI 낮은순 (과매도)</option>
         <option value="rsi14:-1">RSI 높은순</option>
-        <option value="deviation_pct:1">이격도 낮은순</option>
-        <option value="deviation_pct:-1">이격도 높은순</option>
-        <option value="pe_current:1">Fwd P/E 낮은순</option>
-        <option value="pe_current:-1">Fwd P/E 높은순</option>
+        <option value="deviation_200_pct:1">200D 이격도 낮은순</option>
+        <option value="deviation_50_pct:1">50D 이격도 낮은순</option>
+        <option value="macd_score:-1">MACD 좋은순</option>
+        <option value="forward_pe_current:1">Forward P/E 낮은순</option>
+        <option value="trailing_pe_current:1">Trailing P/E 낮은순</option>
+        <option value="peg:1">PEG 낮은순</option>
         <option value="close:-1">종가 높은순</option>
       </select>
     </div>
@@ -158,9 +163,14 @@
         <th class="sym" data-key="symbol" data-type="str">Symbol<span class="arrow"></span></th>
         <th data-key="close" data-type="num">Close<span class="arrow"></span></th>
         <th data-key="rsi14" data-type="num">RSI(14) / Score<span class="arrow"></span></th>
-        <th data-key="deviation_pct" data-type="num">200D 이격도 / Score<span class="arrow"></span></th>
-        <th data-key="pe_current" data-type="num">Fwd P/E / Score<span class="arrow"></span></th>
-        <th data-key="total" data-type="num">Total (/15)<span class="arrow"></span></th>
+        <th data-key="deviation_200_pct" data-type="num">200D 이격도 / Score<span class="arrow"></span></th>
+        <th data-key="deviation_50_pct" data-type="num">50D 이격도 / Score<span class="arrow"></span></th>
+        <th data-key="macd_score" data-type="num">MACD / Score<span class="arrow"></span></th>
+        <th data-key="technical_score" data-type="num">기술점수 (/20)<span class="arrow"></span></th>
+        <th data-key="forward_pe_current" data-type="num">Forward P/E / Score<span class="arrow"></span></th>
+        <th data-key="trailing_pe_current" data-type="num">Trailing P/E / Score<span class="arrow"></span></th>
+        <th data-key="peg" data-type="num">PEG / Score<span class="arrow"></span></th>
+        <th data-key="valuation_score" data-type="num">밸류에이션점수 (/15)<span class="arrow"></span></th>
         <th data-key="quality_str" data-type="str">Data Quality<span class="arrow"></span></th>
       </tr>
 </thead>
@@ -171,7 +181,7 @@
 <div id="detail"></div>
 
 <script>
-const ROWS = [{"symbol": "AMZN", "data_date": "2026-09-18", "close": 253.71001, "rsi14": 48.042650096438884, "rsi_score": 3.0, "sma200": 240.300749935, "deviation_pct": 5.580199008378939, "deviation_score": 3.0, "pe_current": 27.3, "pe_low": 25.8, "pe_median": 42.4, "pe_high": 91.5, "pe_score": 4, "pe_mid_low_median": 34.1, "pe_mid_median_high": 66.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 10.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "GOOGL", "data_date": "2026-09-18", "close": 349.54001, "rsi14": 54.98683456763245, "rsi_score": 2.0, "sma200": 337.49589912000005, "deviation_pct": 3.568668807948261, "deviation_score": 3.0, "pe_current": 25.9, "pe_low": 16.2, "pe_median": 21.7, "pe_high": 32.1, "pe_score": 3, "pe_mid_low_median": 18.95, "pe_mid_median_high": 26.9, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 8.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "JPM", "data_date": "2026-09-18", "close": 349.67001, "rsi14": 44.42977759758321, "rsi_score": 3.0, "sma200": 320.53585019499997, "deviation_pct": 9.089204776088566, "deviation_score": 3.0, "pe_current": 14.4, "pe_low": 8.5, "pe_median": 12.8, "pe_high": 16.2, "pe_score": 3, "pe_mid_low_median": 10.65, "pe_mid_median_high": 14.5, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 9.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "META", "data_date": "2026-09-18", "close": 665.75, "rsi14": 65.84733523255395, "rsi_score": 1.5, "sma200": 624.15849747, "deviation_pct": 6.663612319401135, "deviation_score": 3.0, "pe_current": 20.6, "pe_low": 12.3, "pe_median": 21.7, "pe_high": 29.1, "pe_score": 3, "pe_mid_low_median": 17.0, "pe_mid_median_high": 25.4, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.5, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "MSFT", "data_date": "2026-09-18", "close": 493.78, "rsi14": 53.14129844177667, "rsi_score": 2.0, "sma200": 431.60314967, "deviation_pct": 14.406023305793724, "deviation_score": 2.0, "pe_current": 25.0, "pe_low": 19.1, "pe_median": 30.1, "pe_high": 37.0, "pe_score": 3, "pe_mid_low_median": 24.6, "pe_mid_median_high": 33.55, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "NVDA", "data_date": "2026-09-18", "close": 222.27, "rsi14": 54.201582524961836, "rsi_score": 2.0, "sma200": 198.3781499525, "deviation_pct": 12.043589504802178, "deviation_score": 2.0, "pe_current": 18.2, "pe_low": 17.5, "pe_median": 34.9, "pe_high": 71.0, "pe_score": 4, "pe_mid_low_median": 26.2, "pe_mid_median_high": 52.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 8.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "PLTR", "data_date": "2026-09-18", "close": 177.64, "rsi14": 57.03807261390021, "rsi_score": 2.0, "sma200": 151.7526745575, "deviation_pct": 17.058892383930345, "deviation_score": 1.0, "pe_current": 93.9, "pe_low": 33.6, "pe_median": 77.6, "pe_high": 270.3, "pe_score": 3, "pe_mid_low_median": 55.599999999999994, "pe_mid_median_high": 173.95, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 6.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "TSLA", "data_date": "2026-09-18", "close": 364.26999, "rsi14": 53.77291737209454, "rsi_score": 2.0, "sma200": 397.32564965, "deviation_pct": -8.31953831299801, "deviation_score": 3.0, "pe_current": 188.3, "pe_low": 20.3, "pe_median": 83.1, "pe_high": 243.1, "pe_score": 2, "pe_mid_low_median": 51.699999999999996, "pe_mid_median_high": 163.1, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 7.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "V", "data_date": "2026-09-18", "close": 368.29001, "rsi14": 47.152031865248084, "rsi_score": 3.0, "sma200": 335.941399865, "deviation_pct": 9.629241929693544, "deviation_score": 3.0, "pe_current": 25.5, "pe_low": 22.2, "pe_median": 26.4, "pe_high": 34.1, "pe_score": 3, "pe_mid_low_median": 24.299999999999997, "pe_mid_median_high": 30.25, "pe_status": "fresh_cache", "pe_period": "2026-09", "total": 9.0, "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}];
+const ROWS = [{"symbol": "AMZN", "data_date": "2026-09-18", "close": 253.71001, "rsi14": 48.042650096438884, "rsi_score": 3.0, "sma200": 240.300749935, "deviation_200_pct": 5.580199008378939, "deviation_200_score": 3.0, "sma50": 255.8398, "deviation_50_pct": -0.8324701629691678, "deviation_50_score": 3.0, "macd": -2.0937225686165846, "macd_signal": -1.2347707129710195, "macd_histogram": -0.8589518556455651, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 27.6, "forward_pe_low": 25.8, "forward_pe_median": 42.4, "forward_pe_high": 91.5, "forward_pe_score": 4, "forward_pe_mid_low_median": 34.1, "forward_pe_mid_median_high": 66.95, "trailing_pe_current": 20.4, "trailing_pe_low": 18.9, "trailing_pe_median": 50.8, "trailing_pe_high": 321.8, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 34.849999999999994, "trailing_pe_mid_median_high": 186.3, "peg": 1.33, "peg_score": 3, "valuation_score": 11, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "GOOGL", "data_date": "2026-09-18", "close": 349.54001, "rsi14": 54.98683456763245, "rsi_score": 2.0, "sma200": 337.49589912000005, "deviation_200_pct": 3.568668807948261, "deviation_200_score": 3.0, "sma50": 345.57719826, "deviation_50_pct": 1.1467225731191188, "deviation_50_score": 3.0, "macd": -0.3208400868196577, "macd_signal": -1.8653778296563077, "macd_histogram": 1.54453774283665, "macd_score": 5.0, "technical_score": 13.0, "forward_pe_current": 25.9, "forward_pe_low": 16.2, "forward_pe_median": 21.7, "forward_pe_high": 32.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 18.95, "forward_pe_mid_median_high": 26.9, "trailing_pe_current": 17.4, "trailing_pe_low": 16.0, "trailing_pe_median": 24.9, "trailing_pe_high": 34.0, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 20.45, "trailing_pe_mid_median_high": 29.45, "peg": 2.03, "peg_score": 1, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "JPM", "data_date": "2026-09-18", "close": 349.67001, "rsi14": 44.42977759758321, "rsi_score": 3.0, "sma200": 320.53585019499997, "deviation_200_pct": 9.089204776088566, "deviation_200_score": 3.0, "sma50": 353.19899992, "deviation_50_pct": -0.9991505980479376, "deviation_50_score": 3.0, "macd": -0.8786900227595993, "macd_signal": 0.31122084742235423, "macd_histogram": -1.1899108701819534, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 14.4, "forward_pe_low": 8.5, "forward_pe_median": 12.8, "forward_pe_high": 16.2, "forward_pe_score": 3, "forward_pe_mid_low_median": 10.65, "forward_pe_mid_median_high": 14.5, "trailing_pe_current": 15.0, "trailing_pe_low": 8.1, "trailing_pe_median": 11.6, "trailing_pe_high": 16.6, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 9.85, "trailing_pe_mid_median_high": 14.100000000000001, "peg": 1.42, "peg_score": 3, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "META", "data_date": "2026-09-18", "close": 665.75, "rsi14": 65.84733523255395, "rsi_score": 1.5, "sma200": 624.15849747, "deviation_200_pct": 6.663612319401135, "deviation_200_score": 3.0, "sma50": 607.37899682, "deviation_50_pct": 9.610309787728566, "deviation_50_score": 3.0, "macd": 24.0309388003991, "macd_signal": 16.2327105587212, "macd_histogram": 7.798228241677897, "macd_score": 4.0, "technical_score": 11.5, "forward_pe_current": 20.6, "forward_pe_low": 12.3, "forward_pe_median": 21.7, "forward_pe_high": 29.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 17.0, "forward_pe_mid_median_high": 25.4, "trailing_pe_current": 25.1, "trailing_pe_low": 8.5, "trailing_pe_median": 26.5, "trailing_pe_high": 39.2, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 17.5, "trailing_pe_mid_median_high": 32.85, "peg": 1.02, "peg_score": 3, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "MSFT", "data_date": "2026-09-18", "close": 493.78, "rsi14": 53.14129844177667, "rsi_score": 2.0, "sma200": 431.60314967, "deviation_200_pct": 14.406023305793724, "deviation_200_score": 2.0, "sma50": 464.6806003, "deviation_50_pct": 6.26223683132312, "deviation_50_score": 3.0, "macd": 6.8495568736413475, "macd_signal": 10.014272499003074, "macd_histogram": -3.164715625361726, "macd_score": 2.0, "technical_score": 9.0, "forward_pe_current": 25.0, "forward_pe_low": 19.1, "forward_pe_median": 30.1, "forward_pe_high": 37.0, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.6, "forward_pe_mid_median_high": 33.55, "trailing_pe_current": 27.5, "trailing_pe_low": 21.0, "trailing_pe_median": 33.9, "trailing_pe_high": 40.5, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 27.45, "trailing_pe_mid_median_high": 37.2, "peg": 1.55, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "NVDA", "data_date": "2026-09-18", "close": 222.27, "rsi14": 54.201582524961836, "rsi_score": 2.0, "sma200": 198.3781499525, "deviation_200_pct": 12.043589504802178, "deviation_200_score": 2.0, "sma50": 214.27259947, "deviation_50_pct": 3.732348676303676, "deviation_50_score": 3.0, "macd": 0.7889007800341119, "macd_signal": 1.5176999658141128, "macd_histogram": -0.7287991857800009, "macd_score": 2.0, "technical_score": 9.0, "forward_pe_current": 18.2, "forward_pe_low": 17.5, "forward_pe_median": 34.9, "forward_pe_high": 71.0, "forward_pe_score": 4, "forward_pe_mid_low_median": 26.2, "forward_pe_mid_median_high": 52.95, "trailing_pe_current": 28.1, "trailing_pe_low": 26.5, "trailing_pe_median": 58.2, "trailing_pe_high": 250.5, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 42.35, "trailing_pe_mid_median_high": 154.35, "peg": 0.35, "peg_score": 5, "valuation_score": 13, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "PLTR", "data_date": "2026-09-18", "close": 177.64, "rsi14": 57.03807261390021, "rsi_score": 2.0, "sma200": 151.7526745575, "deviation_200_pct": 17.058892383930345, "deviation_200_score": 1.0, "sma50": 158.25919912, "deviation_50_pct": 12.246239705348504, "deviation_50_score": 2.0, "macd": 3.372160937827033, "macd_signal": 4.568685819612451, "macd_histogram": -1.1965248817854182, "macd_score": 2.0, "technical_score": 7.0, "forward_pe_current": 93.9, "forward_pe_low": 33.6, "forward_pe_median": 77.6, "forward_pe_high": 270.3, "forward_pe_score": 3, "forward_pe_mid_low_median": 55.599999999999994, "forward_pe_mid_median_high": 173.95, "trailing_pe_current": 151.9, "trailing_pe_low": 107.5, "trailing_pe_median": 243.8, "trailing_pe_high": 494.7, "trailing_pe_score": 4, "trailing_pe_mid_low_median": 175.65, "trailing_pe_mid_median_high": 369.25, "peg": 1.76, "peg_score": 2, "valuation_score": 9, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "TSLA", "data_date": "2026-09-18", "close": 364.26999, "rsi14": 53.77291737209454, "rsi_score": 2.0, "sma200": 397.32564965, "deviation_200_pct": -8.31953831299801, "deviation_200_score": 3.0, "sma50": 350.24559928, "deviation_50_pct": 4.004159009800534, "deviation_50_score": 3.0, "macd": 3.8090943128287336, "macd_signal": 3.6357944196249576, "macd_histogram": 0.17329989320377592, "macd_score": 5.0, "technical_score": 13.0, "forward_pe_current": 188.3, "forward_pe_low": 20.3, "forward_pe_median": 83.1, "forward_pe_high": 243.1, "forward_pe_score": 2, "forward_pe_mid_low_median": 51.699999999999996, "forward_pe_mid_median_high": 163.1, "trailing_pe_current": 337.4, "trailing_pe_low": 33.0, "trailing_pe_median": 106.2, "trailing_pe_high": 459.0, "trailing_pe_score": 2, "trailing_pe_mid_low_median": 69.6, "trailing_pe_mid_median_high": 282.6, "peg": 6.96, "peg_score": 1, "valuation_score": 5, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}, {"symbol": "V", "data_date": "2026-09-18", "close": 368.29001, "rsi14": 47.152031865248084, "rsi_score": 3.0, "sma200": 335.941399865, "deviation_200_pct": 9.629241929693544, "deviation_200_score": 3.0, "sma50": 367.08040289999997, "deviation_50_pct": 0.3295210233082324, "deviation_50_score": 3.0, "macd": 1.044834885249145, "macd_signal": 2.3367660235236607, "macd_histogram": -1.2919311382745158, "macd_score": 2.0, "technical_score": 11.0, "forward_pe_current": 25.5, "forward_pe_low": 22.2, "forward_pe_median": 26.4, "forward_pe_high": 34.1, "forward_pe_score": 3, "forward_pe_mid_low_median": 24.299999999999997, "forward_pe_mid_median_high": 30.25, "trailing_pe_current": 31.4, "trailing_pe_low": 26.2, "trailing_pe_median": 31.6, "trailing_pe_high": 47.3, "trailing_pe_score": 3, "trailing_pe_mid_low_median": 28.9, "trailing_pe_mid_median_high": 39.45, "peg": 1.76, "peg_score": 2, "valuation_score": 8, "pe_status": "fresh_cache", "pe_period": "2026-09", "data_quality": ["Koyfin data as of 2026-09-01 (\uce90\uc2dc)"]}];
 const tbody = document.getElementById('tbody');
 const detail = document.getElementById('detail');
 
@@ -186,17 +196,15 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
-// Marks each row's 4 evaluative columns (RSI/Deviation/P/E scores, Total) as
-// top-3-favorable, so the UI can highlight the most attractive picks per
-// column independently of whatever the table is currently sorted by.
-// "Favorable" is ranked on the finest-grained comparable number available
-// for that column (raw RSI/deviation move the same direction as their
-// score; P/E uses its position within the stock's own 5Y band, since raw
-// P/E multiples aren't comparable across companies) -- this avoids the
-// heavy ties a coarse 1-5 score would produce while staying consistent
-// with the score's own favorable direction. Ties at the 3rd-best distinct
-// value are all included (dense ranking), so a column can highlight more
-// than 3 rows when stocks are genuinely tied.
+// Marks each row's ranked columns as top-3-favorable, independently of
+// whatever the table is currently sorted by. "Favorable" is ranked on the
+// finest-grained comparable number available for that column (raw RSI/
+// deviation move the same direction as their score; P/E band columns use
+// the stock's position within its own 5Y band, since raw P/E multiples
+// aren't comparable across companies; MACD/technical/valuation totals use
+// their own score, which is already a comparable 1-5-ish scale). Ties at
+// the 3rd-best distinct value are all included (dense ranking), so a
+// column can highlight more than 3 rows when stocks are genuinely tied.
 function computeTop3(values, ascendingIsBetter) {
   const present = values.filter(v => v !== null && v !== undefined && !Number.isNaN(v));
   if (present.length === 0) return () => false;
@@ -205,20 +213,28 @@ function computeTop3(values, ascendingIsBetter) {
   return v => v !== null && v !== undefined && (ascendingIsBetter ? v <= threshold : v >= threshold);
 }
 
+function peRichness(current, low, high) {
+  return (current == null || low == null || high == null || high === low) ? null : (current - low) / (high - low);
+}
+
 (function markTop3() {
-  const peRichness = r => (r.pe_current == null || r.pe_low == null || r.pe_high == null || r.pe_high === r.pe_low)
-    ? null : (r.pe_current - r.pe_low) / (r.pe_high - r.pe_low);
-
-  const isRsiTop3 = computeTop3(ROWS.map(r => r.rsi14), true);
-  const isDevTop3 = computeTop3(ROWS.map(r => r.deviation_pct), true);
-  const isPeTop3 = computeTop3(ROWS.map(peRichness), true);
-  const isTotalTop3 = computeTop3(ROWS.map(r => r.total), false);
-
-  ROWS.forEach(r => {
-    r.rsi_top3 = r.rsi14 != null && isRsiTop3(r.rsi14);
-    r.dev_top3 = r.deviation_pct != null && isDevTop3(r.deviation_pct);
-    r.pe_top3 = isPeTop3(peRichness(r));
-    r.total_top3 = r.total != null && isTotalTop3(r.total);
+  const rules = [
+    ['rsi_top3', r => r.rsi14, true],
+    ['dev200_top3', r => r.deviation_200_pct, true],
+    ['dev50_top3', r => r.deviation_50_pct, true],
+    ['macd_top3', r => r.macd_score, false],
+    ['tech_top3', r => r.technical_score, false],
+    ['fpe_top3', r => peRichness(r.forward_pe_current, r.forward_pe_low, r.forward_pe_high), true],
+    ['tpe_top3', r => peRichness(r.trailing_pe_current, r.trailing_pe_low, r.trailing_pe_high), true],
+    ['peg_top3', r => (r.peg != null && r.peg > 0 ? r.peg : null), true],
+    ['val_top3', r => r.valuation_score, false],
+  ];
+  rules.forEach(([field, getter, asc]) => {
+    const isTop3 = computeTop3(ROWS.map(getter), asc);
+    ROWS.forEach(r => {
+      const v = getter(r);
+      r[field] = v !== null && v !== undefined && isTop3(v);
+    });
   });
 })();
 
@@ -230,9 +246,14 @@ function renderRows(rows) {
         <td class="sym" data-label="Symbol">${escapeHtml(r.symbol)}</td>
         <td class="num" data-label="Close">${fmt(r.close)}</td>
         <td class="score-cell num${r.rsi_top3 ? ' top3' : ''}" data-kind="rsi" data-label="RSI(14) / Score">${fmt(r.rsi14, 1)}<br><b>${fmt(r.rsi_score, 1)}</b></td>
-        <td class="score-cell num${r.dev_top3 ? ' top3' : ''}" data-kind="deviation" data-label="200D 이격도 / Score">${fmt(r.deviation_pct, 2, '%')}<br><b>${fmt(r.deviation_score, 1)}</b></td>
-        <td class="score-cell num${r.pe_top3 ? ' top3' : ''}" data-kind="pe" data-label="Fwd P/E / Score">${fmt(r.pe_current, 1, 'x')}<br><b>${r.pe_score === null || r.pe_score === undefined ? 'N/A' : r.pe_score}</b></td>
-        <td class="total num${r.total_top3 ? ' top3' : ''}" data-label="Total (/15)">${fmt(r.total, 1)}</td>
+        <td class="score-cell num${r.dev200_top3 ? ' top3' : ''}" data-kind="dev200" data-label="200D 이격도 / Score">${fmt(r.deviation_200_pct, 2, '%')}<br><b>${fmt(r.deviation_200_score, 1)}</b></td>
+        <td class="score-cell num${r.dev50_top3 ? ' top3' : ''}" data-kind="dev50" data-label="50D 이격도 / Score">${fmt(r.deviation_50_pct, 2, '%')}<br><b>${fmt(r.deviation_50_score, 1)}</b></td>
+        <td class="score-cell num${r.macd_top3 ? ' top3' : ''}" data-kind="macd" data-label="MACD / Score">${fmt(r.macd_histogram, 2)}<br><b>${fmt(r.macd_score, 1)}</b></td>
+        <td class="score-cell total tech-total num${r.tech_top3 ? ' top3' : ''}" data-kind="tech" data-label="기술점수 (/20)">${fmt(r.technical_score, 1)}</td>
+        <td class="score-cell num${r.fpe_top3 ? ' top3' : ''}" data-kind="fpe" data-label="Forward P/E / Score">${fmt(r.forward_pe_current, 1, 'x')}<br><b>${r.forward_pe_score === null || r.forward_pe_score === undefined ? 'N/A' : r.forward_pe_score}</b></td>
+        <td class="score-cell num${r.tpe_top3 ? ' top3' : ''}" data-kind="tpe" data-label="Trailing P/E / Score">${fmt(r.trailing_pe_current, 1, 'x')}<br><b>${r.trailing_pe_score === null || r.trailing_pe_score === undefined ? 'N/A' : r.trailing_pe_score}</b></td>
+        <td class="score-cell num${r.peg_top3 ? ' top3' : ''}" data-kind="peg" data-label="PEG / Score">${fmt(r.peg, 2)}<br><b>${r.peg_score === null || r.peg_score === undefined ? 'N/A' : r.peg_score}</b></td>
+        <td class="score-cell total val-total num${r.val_top3 ? ' top3' : ''}" data-kind="val" data-label="밸류에이션점수 (/15)">${fmt(r.valuation_score, 1)}</td>
         <td class="quality" data-label="Data Quality">${escapeHtml(r.quality_str || '-') || '-'}</td>
       </tr>`;
   }).join('');
@@ -312,20 +333,55 @@ tbody.addEventListener('click', (e) => {
     body = 'RSI(14): ' + fmt(row.rsi14, 1) + '\n' +
            '기준: <=20->5, 20~30->4.5, 30~40->4, 40~50->3, 50~60->2, 60~70->1.5, >70->1\n' +
            'Score: ' + fmt(row.rsi_score, 1);
-  } else if (kind === 'deviation') {
+  } else if (kind === 'dev200') {
     title = symbol + ' — 200일 이격도 점수 근거';
     body = 'Close: ' + fmt(row.close, 2) + ' / SMA200: ' + fmt(row.sma200, 2) + '\n' +
-           '이격도: ' + fmt(row.deviation_pct, 2, '%') + '\n' +
+           '이격도: ' + fmt(row.deviation_200_pct, 2, '%') + '\n' +
            '기준: >=+15%->1, +10~+15%->2, -10~+10%->3, -15~-10%->4, <-15%->5\n' +
-           'Score: ' + fmt(row.deviation_score, 1);
-  } else if (kind === 'pe') {
+           'Score: ' + fmt(row.deviation_200_score, 1);
+  } else if (kind === 'dev50') {
+    title = symbol + ' — 50일 이격도 점수 근거';
+    body = 'Close: ' + fmt(row.close, 2) + ' / SMA50: ' + fmt(row.sma50, 2) + '\n' +
+           '이격도: ' + fmt(row.deviation_50_pct, 2, '%') + '\n' +
+           '기준: >=+15%->1, +10~+15%->2, -10~+10%->3, -15~-10%->4, <-15%->5\n' +
+           'Score: ' + fmt(row.deviation_50_score, 1);
+  } else if (kind === 'macd') {
+    title = symbol + ' — MACD 점수 근거';
+    body = 'MACD: ' + fmt(row.macd, 3) + '  Signal: ' + fmt(row.macd_signal, 3) + '  Histogram: ' + fmt(row.macd_histogram, 3) + '\n' +
+           '기준: 최근 5일 내 골든크로스->5, MACD>Signal 유지->4, 히스토그램=0->3, MACD<Signal 유지->2, 최근 5일 내 데드크로스->1\n' +
+           'Score: ' + fmt(row.macd_score, 1);
+  } else if (kind === 'tech') {
+    title = symbol + ' — 기술점수 (/20) 구성';
+    body = 'RSI: ' + fmt(row.rsi_score, 1) + '  200D 이격도: ' + fmt(row.deviation_200_score, 1) +
+           '  50D 이격도: ' + fmt(row.deviation_50_score, 1) + '  MACD: ' + fmt(row.macd_score, 1) + '\n' +
+           '매일 Twelve Data로 자동 갱신됩니다.\n' +
+           'Total: ' + fmt(row.technical_score, 1) + ' / 20';
+  } else if (kind === 'fpe') {
     title = symbol + ' — Forward P/E(NTM) 점수 근거';
     body = 'Koyfin 기준월: ' + (row.pe_period || 'N/A') + ' (' + row.pe_status + ')\n' +
-           'Current: ' + fmt(row.pe_current, 1, 'x') + '  Low: ' + fmt(row.pe_low, 1, 'x') +
-           '  Median: ' + fmt(row.pe_median, 1, 'x') + '  High: ' + fmt(row.pe_high, 1, 'x') + '\n' +
-           'mid(Low,Median): ' + fmt(row.pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.pe_mid_median_high, 2, 'x') + '\n' +
+           'Current: ' + fmt(row.forward_pe_current, 1, 'x') + '  Low: ' + fmt(row.forward_pe_low, 1, 'x') +
+           '  Median: ' + fmt(row.forward_pe_median, 1, 'x') + '  High: ' + fmt(row.forward_pe_high, 1, 'x') + '\n' +
+           'mid(Low,Median): ' + fmt(row.forward_pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.forward_pe_mid_median_high, 2, 'x') + '\n' +
            '기준: <=LOW->5, ~mid(L,M)->4, ~mid(M,H)->3, ~HIGH->2, >HIGH->1\n' +
-           'Score: ' + (row.pe_score === null || row.pe_score === undefined ? 'N/A' : row.pe_score);
+           'Score: ' + (row.forward_pe_score === null || row.forward_pe_score === undefined ? 'N/A' : row.forward_pe_score);
+  } else if (kind === 'tpe') {
+    title = symbol + ' — Trailing P/E(LTM) 점수 근거';
+    body = 'Koyfin 기준월: ' + (row.pe_period || 'N/A') + ' (' + row.pe_status + ')\n' +
+           'Current: ' + fmt(row.trailing_pe_current, 1, 'x') + '  Low: ' + fmt(row.trailing_pe_low, 1, 'x') +
+           '  Median: ' + fmt(row.trailing_pe_median, 1, 'x') + '  High: ' + fmt(row.trailing_pe_high, 1, 'x') + '\n' +
+           'mid(Low,Median): ' + fmt(row.trailing_pe_mid_low_median, 2, 'x') + '  mid(Median,High): ' + fmt(row.trailing_pe_mid_median_high, 2, 'x') + '\n' +
+           '기준: <=LOW->5, ~mid(L,M)->4, ~mid(M,H)->3, ~HIGH->2, >HIGH->1\n' +
+           'Score: ' + (row.trailing_pe_score === null || row.trailing_pe_score === undefined ? 'N/A' : row.trailing_pe_score);
+  } else if (kind === 'peg') {
+    title = symbol + ' — PEG(NTM) 점수 근거';
+    body = 'PEG: ' + fmt(row.peg, 2) + ' (Koyfin 기준월 ' + (row.pe_period || 'N/A') + ')\n' +
+           '기준: <=0.5->5, ~1.0->4, ~1.5->3, ~2.0->2, >2.0->1, 0 이하->N/A\n' +
+           'Score: ' + (row.peg_score === null || row.peg_score === undefined ? 'N/A' : row.peg_score);
+  } else if (kind === 'val') {
+    title = symbol + ' — 밸류에이션점수 (/15) 구성';
+    body = 'Forward P/E: ' + (row.forward_pe_score ?? 'N/A') + '  Trailing P/E: ' + (row.trailing_pe_score ?? 'N/A') + '  PEG: ' + (row.peg_score ?? 'N/A') + '\n' +
+           'Koyfin 기준월 ' + (row.pe_period || 'N/A') + ' — 월 1회 수동 갱신됩니다.\n' +
+           'Total: ' + fmt(row.valuation_score, 1) + ' / 15';
   }
 
   detail.innerHTML = '<h3>' + title + '</h3>' + body;
